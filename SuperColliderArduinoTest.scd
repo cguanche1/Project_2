@@ -2,7 +2,8 @@
 (
 (
 p = SerialPort(
-   "/dev/cu.SLAB_USBtoUART",
+   //"/dev/cu.SLAB_USBtoUART",
+   "/dev/ttyUSB0"
    baudrate: 9600,
    crtscts: true);
 );
