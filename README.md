@@ -23,4 +23,6 @@ Orange Handle With Button -> x: Low-Pass Filter     y: High-Pass Filter
 Black Handle              -> x: Pitch               y: Volume
 Black Handle With Button  -> x: Sub-bass frequency  y: Pitch Deviation
 
+It is worth noting that the switches and buttons are operating on 5V power sources (though the switches are in series with 100 Ohm resistors) and the joysticks are operation on 3.3V power sources. 
+
 The proogram was written using the Arduino IDE and the SuperCollider IDE. The musical a
