@@ -1,21 +1,20 @@
 // INITIALIZE EVERYTHING
-s.waitForBoot(
-(
+//s.waitForBoot(
+
 (
 p = SerialPort(
    "/dev/cu.SLAB_USBtoUART",
    baudrate: 9600,
-   crtscts: true);
+   crtscts: true
 );
 
-s.boot;
+//s.boot;
 
 ~incrYR = 0;
 ~incrXR = 0;
 ~incrYL = 0;
 ~incrXL = 0;
 
-(
 r = Routine({
     var byte, str;
     99999.do{|i|
@@ -67,7 +66,7 @@ r = Routine({
        });
     };
 }).play;
-);
+
 
 ~curValYL = ~yValL;
 ~curValXL = ~xValL;
@@ -94,8 +93,8 @@ SynthDef (\morphPad, {|freq=1000, ampMaster=1900, amp1, amp2, amp3, amp4, dur, v
 	//sig1 = RLPF.ar(sig1, 6000 + filterLFO, 0.5);
     sig1 = sig1 * (blendX).linlin(0, 4096, 0, 1).lag(5);
 
-	sig2a = PinkNoise.ar(0.5);
-	sig2b = DelayL.ar(PinkNoise.ar(0.5), 0.3, 0.2);
+	sig2a = PinkNoise.ar(0.7);
+	sig2b = DelayL.ar(PinkNoise.ar(0.7), 0.3, 0.2);
 	sig2 = Mix([sig2a, sig2b]) !2;
 //	sig2 = RLPF.ar(sig2, 4000 + filterLFO, 1);
 	//sig2 = RHPF.ar(sig2, 250, 1);
@@ -120,9 +119,14 @@ SynthDef (\morphPad, {|freq=1000, ampMaster=1900, amp1, amp2, amp3, amp4, dur, v
     sig = FreeVerb.ar(sig, (verb).linlin(0, 4096, 0, 1).lag(5), 0.8);
 
 
-    Out.ar(out, sig * LinLin.kr(ampMaster, 0.01, 4096, 1, 0.01).lag(4));
+    Out.ar(out, sig * LinLin.kr(ampMaster, 0, 4096, 0, 1).lag(4));
 }).add;
+
+//s.sync;
+~noisey = Synth(\morphPad, [\freq, 1000, \amp1, 1, \dur, 1, \pan, 0, \out, 0, \ampMaster, 0]);
 )
+
+r.stop;
 
 ~test = Synth(\morphPad, [\freq, 600, \amp1, 1, \dur, 100, \pan, 0, \out, 0, \blendX, 2000, \blendY, 2000, \ampMaster, 4000]);
 
@@ -176,13 +180,84 @@ SynthDef(\grain_synths, {|gate=1, rate=1900, amp=1900, gSize=1900, carFreq=1900,
 
     sig = FreeVerb.ar(sig, 0.4, 0.7);
 
-            Out.ar([0 , 1], sig * (amp).linlin(0, 4096, 1, 0).lag(5))}).add;
+            Out.ar([0 , 1], sig * (amp).linlin(0, 4096, 0, 1).lag(5));
+    
+}).add;
 )
+(
+~grainSynth = Synth(\grain_synths, [\rate, ~curValXR, \chaos, ~curValXR, \carFreq, ~curValYL, \modFreq, ~curValXL, \random, 0, \subFreq, ~curValYL, \amp, 0, \envbuf, y]);
+)
+
+r.stop;
+s.boot;
 
 ~wef = Synth(\grain_synths, [\rate, 10, \chaos, 5, \carFreq, 30.0, \modFreq, 500, \random, 1000, \subFreq, 50]);
 
 ~wef.free;*/
 
+
+(
+~rou = Routine {
+              
+                ~curValXR = ~xValR;
+                ~curValXL = ~xValL;
+                ~curValYR = ~yValR;
+                ~curValYL = ~yValL;
+                loop {
+                    ~curValYR = [[~curValYR + ~incrYR, 4096].minItem, 0].maxItem;
+                    ~curValXR = [[~curValXR + ~incrXR, 4096].minItem, 0].maxItem;
+
+                    ~curValYL = [[~curValYL + ~incrYL, 4096].minItem, 0].maxItem;
+                    ~curValXL = [[~curValXL + ~incrXL, 4096].minItem, 0].maxItem;
+
+
+                    if (~buttonValR == 0, {~noisey.set(\blendY, ~curValYR, \blendX, ~curValXR)},
+                        {~noisey.set(\lpfCut, ~curValYR, \hpfCut, ~curValXR)});
+
+                    if (~buttonValL == 0, {~noisey.set(\ampMaster, (~curValXL * ~switchValR * (~switchValL - 1).abs), \freq, ~curValYL)},
+                        {~noisey.set(\phaseRate, ~curValXL, \verb, ~curValYL)});
+
+                    0.005.wait;
+        }
+    }.play;
+
+~grainR = Routine {
+                ~curValXR = ~xValR;
+                ~curValXL = ~xValL;
+                ~curValYR = ~yValR;
+                ~curValYL = ~yValL;
+                loop {
+                    ~curValYR = [[~curValYR + ~incrYR, 4096].minItem, 0].maxItem;
+                    ~curValXR = [[~curValXR + ~incrXR, 4096].minItem, 0].maxItem;
+
+                    ~curValYL = [[~curValYL + ~incrYL, 4096].minItem, 0].maxItem;
+                    ~curValXL = [[~curValXL + ~incrXL, 4096].minItem, 0].maxItem;
+
+                    if (~buttonValR == 0, {~grainSynth.set(\rate, ~curValYR, \gSize, ~curValXR, \chaos, ~curValXR)},
+                        {~grainSynth.set(\lpfCut, ~curValYR, \hpfCut, ~curValXR)});
+
+                    if (~buttonValL == 0, {~grainSynth.set(\amp, (~curValXL * ~switchValR * ~switchValL), \carFreq, ~curValYL)},
+                        {~grainSynth.set(\random, ~curValXL, \subFreq, ~curValYL)});
+                            
+                    ~curValYR.postln;
+
+                    0.005.wait;
+                }
+            }.play;
+)
+
+r.stop;
+
+
+
+   
+
+
+
+s.boot;
+r.stop;
+
+~rou.stop
 (
 ~startSynth = Routine {
     loop {
