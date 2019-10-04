@@ -1,14 +1,16 @@
 // INITIALIZE EVERYTHING
-//s.waitForBoot(
+s.waitForBoot({
 
-(
+~masterRoutine = Routine {
+    
 p = SerialPort(
    "/dev/cu.SLAB_USBtoUART",
    baudrate: 9600,
    crtscts: true
 );
 
-//s.boot;
+1.postln;        
+0.5.wait;
 
 ~incrYR = 0;
 ~incrXR = 0;
@@ -62,10 +64,11 @@ r = Routine({
 			if((~yValL > 2000) && (~yValL <= 3300), {~incrYL = 1.5});
 			if(~yValL > 3300, {~incrYL = 3});
 
-            // if(~switchValL == 1, {
        });
     };
 }).play;
+        
+2.postln;        
 
 
 ~curValYL = ~yValL;
@@ -73,13 +76,13 @@ r = Routine({
 ~curValYR = ~yValR;
 ~curValXR = ~xValR;
 
-)
+//);
 
-r.stop;
+//r.stop;
 
 
 
-(
+//(
 SynthDef (\morphPad, {|freq=1000, ampMaster=1900, amp1, amp2, amp3, amp4, dur, vibRate = 4, vibDepth = 0.1, blendX=1900, blendY=1900, pan, out, lpfCut=1900, hpfCut=1900, phaseRate=100, verb=1900|
 	var sig, sig1, sig1a, sig1b, sig1c, sig2, sig2a, sig2b, sig3, sig3a, sig3b, sig3c, sig4a, sig4b, sig4, vib, filterLFO, phaser;
 	vib = SinOsc.kr(vibRate).range(freq * (1 - vibDepth), freq * (1 + vibDepth));
@@ -122,13 +125,13 @@ SynthDef (\morphPad, {|freq=1000, ampMaster=1900, amp1, amp2, amp3, amp4, dur, v
     Out.ar(out, sig * LinLin.kr(ampMaster, 0, 4096, 0, 1).lag(4));
 }).add;
 
-//s.sync;
+s.sync;
 ~noisey = Synth(\morphPad, [\freq, 1000, \amp1, 1, \dur, 1, \pan, 0, \out, 0, \ampMaster, 0]);
-)
+//)
 
-r.stop;
+//.stop;
 
-~test = Synth(\morphPad, [\freq, 600, \amp1, 1, \dur, 100, \pan, 0, \out, 0, \blendX, 2000, \blendY, 2000, \ampMaster, 4000]);
+//~test = Synth(\morphPad, [\freq, 600, \amp1, 1, \dur, 100, \pan, 0, \out, 0, \blendX, 2000, \blendY, 2000, \ampMaster, 4000]);
 
 
 
@@ -140,10 +143,10 @@ s.boot;*/
 
 
 
-(
-var winenv;
-winenv = Env([0, 0.8, 0.2,0.8, 0.2, 0.8, 0], 0.5 ! 6, [6, -4, 4, -4, 4, 6]);
-y = Buffer.sendCollection(s, winenv.discretize, 1);
+
+
+~winenv = Env([0, 0.8, 0.2,0.8, 0.2, 0.8, 0], 0.5 ! 6, [6, -4, 4, -4, 4, 6]);
+y = Buffer.sendCollection(s, ~winenv.discretize, 1);
 
 SynthDef(\grain_synths, {|gate=1, rate=1900, amp=1900, gSize=1900, carFreq=1900, modFreq=1900, chaos=1900, random=0, envbuf, subFreq=1900, lpfCut=1900, hpfCut=1900|
     var env, sig, sig1, sig2, sig3, freqdev, w, x, y, z, trig;
@@ -183,20 +186,22 @@ SynthDef(\grain_synths, {|gate=1, rate=1900, amp=1900, gSize=1900, carFreq=1900,
             Out.ar([0 , 1], sig * (amp).linlin(0, 4096, 0, 1).lag(5));
     
 }).add;
-)
-(
+
+s.sync;
+        
+
 ~grainSynth = Synth(\grain_synths, [\rate, ~curValXR, \chaos, ~curValXR, \carFreq, ~curValYL, \modFreq, ~curValXL, \random, 0, \subFreq, ~curValYL, \amp, 0, \envbuf, y]);
-)
 
-r.stop;
-s.boot;
 
-~wef = Synth(\grain_synths, [\rate, 10, \chaos, 5, \carFreq, 30.0, \modFreq, 500, \random, 1000, \subFreq, 50]);
+//r.stop;
+//s.boot;
+
+/*~wef = Synth(\grain_synths, [\rate, 10, \chaos, 5, \carFreq, 30.0, \modFreq, 500, \random, 1000, \subFreq, 50]);
 
 ~wef.free;*/
 
+3.wait;
 
-(
 ~rou = Routine {
               
                 ~curValXR = ~xValR;
@@ -244,15 +249,17 @@ s.boot;
                     0.005.wait;
                 }
             }.play;
-)
+}.play;
+    
+});
 
-r.stop;
+//r.stop;
 
 
 
    
 
-
+/*
 
 s.boot;
 r.stop;
@@ -331,7 +338,7 @@ r.stop;
 s.kill;
 ~grainR.stop;
 
-~startSynth.stop;
+~startSynth.stop;*/
 
 //Modify rate between 3 and 55
 // Modify chaos between 1 and 5
@@ -359,7 +366,7 @@ s.kill;
 
 
 
-
+/*
 // Synth 3
 (
 SynthDef(\sin_grain, {arg gate = 1, amp = 1, envbuf, rate=20;
@@ -622,7 +629,7 @@ SynthDef(\my_FM, {|rate=20, amp=1, gate=1, gSize=0.1, carFreq=440, modFreq=200, 
 // Modify modFreq between 10 and 500
 // Modify gsize between 0.05 and 1
 
-~wef = Synth(\my_FM, [\rate, 10, \chaos, 5, \carFreq, 300, \modFreq, 500, \random, 1000]);
+~wef = Synth(\my_FM, [\rate, 10, \chaos, 5, \carFreq, 300, \modFreq, 500, \random, 1000]);*/
 
 
 
